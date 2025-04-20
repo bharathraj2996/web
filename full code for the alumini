@@ -1,0 +1,728 @@
+import { useState } from 'react'
+import { Button } from "/components/ui/button"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "/components/ui/card"
+import { Input } from "/components/ui/input"
+import { Label } from "/components/ui/label"
+import { Home, User, Users, ArrowRight, X, Check } from "lucide-react"
+
+type User = {
+  id: string
+  name: string
+  email: string
+  role: 'student' | 'alumni'
+  batch?: number
+  branch?: string
+  jobTitle?: string
+  sustainabilityScore?: number
+}
+
+type Product = {
+  id: string
+  name: string
+  description: string
+  price: number
+  carbonSaved: number
+  image: string
+}
+
+export default function AlumniApp() {
+  // App state
+  const [currentView, setCurrentView] = useState<'home' | 'login' | 'signup' | 'directory' | 'profile' | 'marketplace' | 'orders'>('home')
+  const [loggedInUser, setLoggedInUser] = useState<User | null>(null)
+  const [cart, setCart] = useState<Product[]>([])
+  
+  // Form states
+  const [loginEmail, setLoginEmail] = useState('')
+  const [loginPassword, setLoginPassword] = useState('')
+  const [signupEmail, setSignupEmail] = useState('')
+  const [signupPassword, setSignupPassword] = useState('')
+  const [signupName, setSignupName] = useState('')
+  const [signupRole, setSignupRole] = useState<'student' | 'alumni'>('alumni')
+  
+  // Filter states
+  const [filterBatch, setFilterBatch] = useState('')
+  const [filterBranch, setFilterBranch] = useState('')
+  const [filterJob, setFilterJob] = useState('')
+
+  // Mock data
+  const users: User[] = [
+    {
+      id: '1',
+      name: 'Alex Johnson',
+      email: 'alex@example.com',
+      role: 'alumni',
+      batch: 2015,
+      branch: 'Computer Science',
+      jobTitle: 'Software Engineer',
+      sustainabilityScore: 85
+    },
+    {
+      id: '2',
+      name: 'Sam Wilson',
+      email: 'sam@example.com',
+      role: 'alumni',
+      batch: 2018,
+      branch: 'Electrical Engineering',
+      jobTitle: 'Product Manager',
+      sustainabilityScore: 72
+    },
+    {
+      id: '3',
+      name: 'Taylor Smith',
+      email: 'taylor@example.com',
+      role: 'student',
+      batch: 2022,
+      branch: 'Mechanical Engineering',
+      jobTitle: 'Intern',
+      sustainabilityScore: 90
+    }
+  ]
+
+  const products: Product[] = [
+    {
+      id: '1',
+      name: 'Reusable Water Bottle',
+      description: 'Stainless steel, keeps drinks cold for 24 hours',
+      price: 25,
+      carbonSaved: 10,
+      image: ''
+    },
+    {
+      id: '2',
+      name: 'Bamboo Toothbrush',
+      description: 'Eco-friendly alternative to plastic toothbrushes',
+      price: 5,
+      carbonSaved: 2,
+      image: ''
+    },
+    {
+      id: '3',
+      name: 'Organic Cotton Tote',
+      description: 'Perfect for groceries and shopping',
+      price: 15,
+      carbonSaved: 5,
+      image: ''
+    }
+  ]
+
+  // Auth handlers
+  const handleLogin = () => {
+    // Mock login - in a real app, this would call an auth service
+    const user = users.find(u => u.email === loginEmail)
+    if (user) {
+      setLoggedInUser(user)
+      setCurrentView('directory')
+    }
+  }
+
+  const handleSignup = () => {
+    // Mock signup - in a real app, this would call an auth service
+    const newUser: User = {
+      id: ${users.length + 1},
+      name: signupName,
+      email: signupEmail,
+      role: signupRole,
+      sustainabilityScore: Math.floor(Math.random() * 50) + 50 // Random score 50-100
+    }
+    setLoggedInUser(newUser)
+    setCurrentView('directory')
+  }
+
+  const handleLogout = () => {
+    setLoggedInUser(null)
+    setCurrentView('home')
+  }
+
+  // Marketplace handlers
+  const addToCart = (product: Product) => {
+    setCart([...cart, product])
+  }
+
+  const removeFromCart = (productId: string) => {
+    setCart(cart.filter(item => item.id !== productId))
+  }
+
+  const checkout = () => {
+    // In a real app, this would integrate with Razorpay
+    setCurrentView('orders')
+    setCart([])
+  }
+
+  // Filtered users
+  const filteredUsers = users.filter(user => {
+    return (
+      (filterBatch === '' || user.batch?.toString().includes(filterBatch)) &&
+      (filterBranch === '' || user.branch?.toLowerCase().includes(filterBranch.toLowerCase())) &&
+      (filterJob === '' || user.jobTitle?.toLowerCase().includes(filterJob.toLowerCase()))
+    )
+  })
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Navigation */}
+      <nav className="bg-white shadow-sm">
+        <div className="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+          <div className="flex items-center space-x-4">
+            <Button 
+              variant="ghost" 
+              onClick={() => setCurrentView('home')}
+              className="flex items-center"
+            >
+              <Home className="mr-2 h-4 w-4" />
+              Alumni Network
+            </Button>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            {loggedInUser ? (
+              <>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setCurrentView('directory')}
+                  className="flex items-center"
+                >
+                  <Users className="mr-2 h-4 w-4" />
+                  Directory
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setCurrentView('profile')}
+                  className="flex items-center"
+                >
+                  <User className="mr-2 h-4 w-4" />
+                  Profile
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={handleLogout}
+                >
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setCurrentView('login')}
+                >
+                  Login
+                </Button>
+                <Button 
+                  onClick={() => setCurrentView('signup')}
+                >
+                  Sign Up
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+      </nav>
+
+      <main className="max-w-6xl mx-auto px-4 py-8">
+        {/* Homepage */}
+        {currentView === 'home' && (
+          <div className="space-y-8">
+            <section className="text-center py-12">
+              <h1 className="text-4xl font-bold mb-4">Connect with Your Alumni Community</h1>
+              <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+                Reconnect with classmates, support current students, and make sustainable choices together.
+              </p>
+              <div className="flex justify-center space-x-4">
+                {loggedInUser ? (
+                  <Button 
+                    onClick={() => setCurrentView('directory')}
+                    className="flex items-center"
+                  >
+                    View Directory <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                ) : (
+                  <>
+                    <Button 
+                      onClick={() => setCurrentView('login')}
+                    >
+                      Login
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setCurrentView('signup')}
+                    >
+                      Sign Up
+                    </Button>
+                  </>
+                )}
+              </div>
+            </section>
+
+            <section className="grid md:grid-cols-3 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Alumni Directory</CardTitle>
+                  <CardDescription>Find and connect with fellow alumni</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-32" />
+                </CardContent>
+                <CardFooter>
+                  <Button 
+                    onClick={() => setCurrentView('directory')}
+                    className="w-full"
+                  >
+                    Explore
+                  </Button>
+                </CardFooter>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Sustainability</CardTitle>
+                  <CardDescription>Track your eco-friendly impact</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-32" />
+                </CardContent>
+                <CardFooter>
+                  <Button 
+                    onClick={() => setCurrentView('marketplace')}
+                    className="w-full"
+                  >
+                    Learn More
+                  </Button>
+                </CardFooter>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Eco Marketplace</CardTitle>
+                  <CardDescription>Shop sustainable products</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-32" />
+                </CardContent>
+                <CardFooter>
+                  <Button 
+                    onClick={() => setCurrentView('marketplace')}
+                    className="w-full"
+                  >
+                    Browse
+                  </Button>
+                </CardFooter>
+              </Card>
+            </section>
+          </div>
+        )}
+
+        {/* Login */}
+        {currentView === 'login' && (
+          <div className="max-w-md mx-auto">
+            <Card>
+              <CardHeader>
+                <CardTitle>Login</CardTitle>
+                <CardDescription>Enter your credentials to access your account</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    value={loginEmail}
+                    onChange={(e) => setLoginEmail(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input 
+                    id="password" 
+                    type="password" 
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                  />
+                </div>
+              </CardContent>
+              <CardFooter className="flex flex-col space-y-2">
+                <Button 
+                  onClick={handleLogin}
+                  className="w-full"
+                >
+                  Login
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  onClick={() => setCurrentView('signup')}
+                >
+                  Don't have an account? Sign up
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  onClick={() => setCurrentView('home')}
+                >
+                  Back to Home
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+        )}
+
+        {/* Signup */}
+        {currentView === 'signup' && (
+          <div className="max-w-md mx-auto">
+            <Card>
+              <CardHeader>
+                <CardTitle>Create an Account</CardTitle>
+                <CardDescription>Join the alumni network</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Full Name</Label>
+                  <Input 
+                    id="name" 
+                    value={signupName}
+                    onChange={(e) => setSignupName(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    value={signupEmail}
+                    onChange={(e) => setSignupEmail(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input 
+                    id="password" 
+                    type="password" 
+                    value={signupPassword}
+                    onChange={(e) => setSignupPassword(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Role</Label>
+                  <div className="flex space-x-4">
+                    <Button 
+                      variant={signupRole === 'student' ? 'default' : 'outline'}
+                      onClick={() => setSignupRole('student')}
+                    >
+                      Student
+                    </Button>
+                    <Button 
+                      variant={signupRole === 'alumni' ? 'default' : 'outline'}
+                      onClick={() => setSignupRole('alumni')}
+                    >
+                      Alumni
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter className="flex flex-col space-y-2">
+                <Button 
+                  onClick={handleSignup}
+                  className="w-full"
+                >
+                  Sign Up
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  onClick={() => setCurrentView('login')}
+                >
+                  Already have an account? Login
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  onClick={() => setCurrentView('home')}
+                >
+                  Back to Home
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+        )}
+
+        {/* Alumni Directory */}
+        {currentView === 'directory' && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold">Alumni Directory</h2>
+              {loggedInUser && (
+                <Button 
+                  onClick={() => setCurrentView('profile')}
+                  className="flex items-center"
+                >
+                  <User className="mr-2 h-4 w-4" /> My Profile
+                </Button>
+              )}
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Filters</CardTitle>
+              </CardHeader>
+              <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="batch">Batch Year</Label>
+                  <Input 
+                    id="batch" 
+                    placeholder="e.g. 2015" 
+                    value={filterBatch}
+                    onChange={(e) => setFilterBatch(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="branch">Branch</Label>
+                  <Input 
+                    id="branch" 
+                    placeholder="e.g. Computer Science" 
+                    value={filterBranch}
+                    onChange={(e) => setFilterBranch(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="job">Job Title</Label>
+                  <Input 
+                    id="job" 
+                    placeholder="e.g. Engineer" 
+                    value={filterJob}
+                    onChange={(e) => setFilterJob(e.target.value)}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredUsers.map(user => (
+                <Card key={user.id}>
+                  <CardHeader>
+                    <CardTitle>{user.name}</CardTitle>
+                    <CardDescription>
+                      {user.role === 'alumni' ? 'Alumni' : 'Current Student'}
+                      {user.batch && ` • Batch of ${user.batch}`}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {user.branch && <p><strong>Branch:</strong> {user.branch}</p>}
+                    {user.jobTitle && <p><strong>Job:</strong> {user.jobTitle}</p>}
+                    {user.sustainabilityScore && (
+                      <p><strong>Sustainability Score:</strong> {user.sustainabilityScore}/100</p>
+                    )}
+                  </CardContent>
+                  <CardFooter>
+                    <Button variant="outline" className="w-full">
+                      Connect
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Profile */}
+        {currentView === 'profile' && loggedInUser && (
+          <div className="max-w-2xl mx-auto">
+            <Card>
+              <CardHeader>
+                <CardTitle>Your Profile</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center space-x-4">
+                  <div className="bg-gray-200 border-2 border-dashed rounded-xl w-16 h-16" />
+                  <div>
+                    <h3 className="text-xl font-semibold">{loggedInUser.name}</h3>
+                    <p className="text-gray-600">{loggedInUser.email}</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="role">Role</Label>
+                    <Input 
+                      id="role" 
+                      value={loggedInUser.role === 'alumni' ? 'Alumni' : 'Student'} 
+                      readOnly 
+                    />
+                  </div>
+                  {loggedInUser.batch && (
+                    <div className="space-y-2">
+                      <Label htmlFor="batch">Batch Year</Label>
+                      <Input 
+                        id="batch" 
+                        value={loggedInUser.batch.toString()} 
+                        readOnly 
+                      />
+                    </div>
+                  )}
+                  {loggedInUser.branch && (
+                    <div className="space-y-2">
+                      <Label htmlFor="branch">Branch</Label>
+                      <Input 
+                        id="branch" 
+                        value={loggedInUser.branch} 
+                        readOnly 
+                      />
+                    </div>
+                  )}
+                  {loggedInUser.jobTitle && (
+                    <div className="space-y-2">
+                      <Label htmlFor="job">Job Title</Label>
+                      <Input 
+                        id="job" 
+                        value={loggedInUser.jobTitle} 
+                        readOnly 
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Sustainability Score</Label>
+                  <div className="h-4 w-full bg-gray-200 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-green-500" 
+                      style={{ width: ${loggedInUser.sustainabilityScore}% }}
+                    />
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    {loggedInUser.sustainabilityScore}/100 - Keep up the good work!
+                  </p>
+                </div>
+              </CardContent>
+              <CardFooter className="flex justify-between">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setCurrentView('directory')}
+                >
+                  Back to Directory
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setCurrentView('marketplace')}
+                >
+                  Visit Marketplace
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+        )}
+
+        {/* Marketplace */}
+        {currentView === 'marketplace' && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold">Eco Marketplace</h2>
+              {cart.length > 0 && (
+                <Button 
+                  onClick={() => setCurrentView('orders')}
+                  className="flex items-center"
+                >
+                  View Cart ({cart.length})
+                </Button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {products.map(product => (
+                <Card key={product.id}>
+                  <CardHeader>
+                    <CardTitle>{product.name}</CardTitle>
+                    <CardDescription>{product.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-32 mb-4" />
+                    <div className="flex justify-between items-center">
+                      <span className="font-bold">${product.price}</span>
+                      <span className="text-sm text-green-600">
+                        Saves {product.carbonSaved}kg CO₂
+                      </span>
+                    </div>
+                  </CardContent>
+                  <CardFooter>
+                    <Button 
+                      onClick={() => addToCart(product)}
+                      className="w-full"
+                    >
+                      Add to Cart
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Order Summary */}
+        {currentView === 'orders' && (
+          <div className="max-w-2xl mx-auto">
+            <Card>
+              <CardHeader>
+                <CardTitle>Order Summary</CardTitle>
+                <CardDescription>Your sustainable purchases</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {cart.length === 0 ? (
+                  <p>Your cart is empty</p>
+                ) : (
+                  <>
+                    <div className="space-y-2">
+                      {cart.map(item => (
+                        <div key={item.id} className="flex justify-between items-center p-2 border rounded">
+                          <div>
+                            <p className="font-medium">{item.name}</p>
+                            <p className="text-sm text-gray-600">${item.price}</p>
+                          </div>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => removeFromCart(item.id)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="border-t pt-4">
+                      <div className="flex justify-between font-bold">
+                        <span>Total:</span>
+                        <span>${cart.reduce((sum, item) => sum + item.price, 0)}</span>
+                      </div>
+                      <div className="flex justify-between text-green-600">
+                        <span>Total Carbon Saved:</span>
+                        <span>{cart.reduce((sum, item) => sum + item.carbonSaved, 0)}kg CO₂</span>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </CardContent>
+              <CardFooter className="flex justify-between">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setCurrentView('marketplace')}
+                >
+                  Continue Shopping
+                </Button>
+                {cart.length > 0 && (
+                  <Button onClick={checkout}>
+                    Proceed to Checkout
+                  </Button>
+                )}
+              </CardFooter>
+            </Card>
+          </div>
+        )}
+      </main>
+
+      <footer className="bg-white border-t mt-8">
+        <div className="max-w-6xl mx-auto px-4 py-6 text-center text-gray-600">
+          <p>© 2023 Alumni Network. All rights reserved.</p>
+          <div className="mt-2 flex justify-center space-x-4">
+            <Button variant="ghost" size="sm">Privacy Policy</Button>
+            <Button variant="ghost" size="sm">Terms of Service</Button>
+            <Button variant="ghost" size="sm">Contact Us</Button>
+          </div>
+        </div>
+      </footer>
+    </div>
+  )
+}
